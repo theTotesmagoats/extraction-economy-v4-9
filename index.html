@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>EXTRACTION ECONOMY v4.9 - Balanced Fiduciary Engine</title>
+<title>EXTRACTION ECONOMY v5.1 - The Dopamine Loop</title>
 <style>
     :root {
         --win-bg: #c0c0c0; --win-high: #ffffff; --win-shadow: #808080;
@@ -56,17 +56,32 @@
     
     .action-button { margin-top: 5px; height: 35px; background: #dfdfdf; border: 2px solid #444; font-weight: bold; cursor: pointer; }
     .action-button:hover { background: #c0c0c0; }
+
+    /* News Ticker CSS */
+    .ticker-wrap { width: 100%; overflow: hidden; background-color: #000; border: 1px solid var(--win-shadow); box-shadow: inset 1px 1px #000; margin-bottom: 8px; }
+    .ticker { display: inline-block; white-space: nowrap; padding-right: 100%; box-sizing: content-box; animation: ticker 25s linear infinite; color: #00ff00; font-family: 'Courier New', monospace; font-size: 11px; padding-top: 4px; padding-bottom: 4px; font-weight: bold; }
+    @keyframes ticker {
+        0% { transform: translate3d(0, 0, 0); }
+        100% { transform: translate3d(-100%, 0, 0); }
+    }
 </style>
 </head>
 <body>
 
 <div class="window" style="max-width: 1250px; margin: 0 auto;">
-    <div class="title-bar"><span>CANDER_OPERATIONAL_TERMINAL_v4.9</span><span>[X]</span></div>
+    <div class="title-bar"><span>CANDER_OPERATIONAL_TERMINAL_v5.1</span><span>[X]</span></div>
     
     <div class="content-area">
         <div class="cander-logo">
             <div class="cander-logo-main">CANDER</div>
             <div class="cander-logo-sub">CREATIVE SUITE</div>
+        </div>
+
+        <div class="window" style="margin-bottom: 8px;">
+            <div class="title-bar" style="height: 14px; font-size: 9px; background: #444;"><span>GLOBAL_MARKET_FEED</span></div>
+            <div class="ticker-wrap">
+                <div class="ticker" id="news_ticker">MARKET STABLE... AWAITING QUARTERLY EARNINGS REPORT... INITIALIZING CANDER TERMINAL...</div>
+            </div>
         </div>
 
         <div id="alert_board" class="threat-banner threat-board">⚠️ FIDUCIARY RISK: Board patience critical. Increase extraction yield immediately.</div>
@@ -117,7 +132,7 @@
                 <div class="window"><div class="title-bar">EXTRACTION_PROTOCOLS (THE HARVEST)</div><div class="content-area inset-panel">
                     <div class="metric-row" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dotted #888;">
                         <span style="font-weight:bold;">MONTHLY SUBSCRIPTION: $<span id="price_val">10</span></span>
-                        <input type="range" id="price_slider" min="0" max="150" value="10" oninput="document.getElementById('price_val').innerText=this.value" style="width: 120px;">
+                        <input type="range" id="price_slider" min="0" max="150" value="10" oninput="document.getElementById('price_val').innerText=this.value; update_locks();" style="width: 120px;">
                     </div>
                     <label class="protocol-label" id="lbl_t_pd" data-tip="INDUSTRY TERM: Algorithmic Price Discrimination"><input type="checkbox" id="t_pd" onchange="update_locks()"> Automatically charge users the max possible price based on deadline urgency. (+$15/user)</label>
                     <label class="protocol-label" id="lbl_t_st" data-tip="INDUSTRY TERM: Dark Pattern Cancellation Friction"><input type="checkbox" id="t_st" onchange="update_locks()"> Deploy confusing interface mazes to intentionally frustrate license cancellation. (+$10/user)</label>
@@ -128,12 +143,13 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
                     <div class="window"><div class="title-bar">INFLUENCE & ACQ.</div><div class="content-area inset-panel" style="padding: 4px;">
                         <label class="protocol-label" data-tip="INDUSTRY TERM: Regulatory Capture. Shield extraction via automated political contributions."><input type="checkbox" id="inf_lob"> Retainer: PAC Lobbyists (-$250k/qtr) [+25 Pol]</label>
+                        <label class="protocol-label" data-tip="INDUSTRY TERM: Reputation Washing. Manufacture continuous public goodwill."><input type="checkbox" id="inf_phil"> Retainer: PR Firm (-$50k/qtr) [+10 Pol]</label>
                         <button onclick="acquire_competitor()" id="btn_acquire" style="margin-top: 4px;">ACQUIRE THREAT ($0)</button>
                     </div></div>
                     <div class="window">
                         <div class="title-bar">SYSTEM_CLOCK <span id="clock_status" class="status-halted">HALTED</span></div>
                         <div class="content-area">
-                            <button onclick="toggle_sim()" id="btn_clock" style="height:48px; background:#c0f0c0; font-size: 13px;">ENGAGE AUTOMATION</button>
+                            <button onclick="toggle_sim()" id="btn_clock" style="height:55px; background:#c0f0c0; font-size: 13px;">ENGAGE AUTOMATION</button>
                         </div>
                     </div>
                 </div>
@@ -207,7 +223,7 @@ let state = {
     ext: 0, lob: 0, over: false, modal_active: false,
     history: { p: [500000], g: [100] },
     comp_threat: 0, comp_acquired: false, comp_locked: false,
-    inbox: [], unread: 0,
+    inbox: [], unread: 0, ticker_news: [],
     segments: [
         { name: "Hobbyists", count: 5000, v: 0.8, a: 5, d: 0 },
         { name: "Indie Pros", count: 3000, v: 1.2, a: 15, d: 15 },
@@ -246,14 +262,6 @@ let state = {
                 { text: "Execute EEE (-$75,000 Dev Cost)", action: () => { state.profit -= 75000; state.segments.forEach(s => s.d = Math.min(100, s.d + 15)); state.global_aware += 10; return "DECISION: Executed EEE. Third-party killed. Platform dependency deepened."; } },
                 { text: "Maintain Status Quo", action: () => { return "DECISION: Declined to integrate. Third-party remains independent."; } }
             ],
-            triggered: false
-        },
-        {
-            id: "c_board_warn",
-            condition: () => state.board_patience < 40,
-            title: "BOARD DIRECTIVE: Fiduciary Warning",
-            text: "The Board of Directors is deeply concerned by your recent profit margins. If you are operating 'pro-consumer' ethical protocols, you are violating your fiduciary duty to maximize shareholder value. Turn off privacy settings. Increase extraction yield immediately or face termination.",
-            options: [{ text: "Acknowledge Warning", action: () => "DECISION: Acknowledged. Fiduciary risk remains critical." }],
             triggered: false
         }
     ]
@@ -326,6 +334,8 @@ function update_locks() {
         t_pd.disabled = false; document.getElementById('lbl_t_pd').classList.remove('locked');
         t_hf.disabled = false; document.getElementById('lbl_t_hf').classList.remove('locked');
     }
+    
+    generate_news();
 }
 
 function trigger_interactive_memo(memo) {
@@ -427,8 +437,54 @@ function acquire_competitor() {
     if(state.profit >= cost) {
         state.profit -= cost; state.comp_acquired = true; state.comp_threat = 0;
         log("ACQUISITION: CanvasOS purchased and deprecated.");
+        generate_news();
         update_ui();
     } else { log("ACQUISITION FAILED: Insufficient capital."); }
+}
+
+function generate_news() {
+    let pool = [];
+    let price = parseInt(document.getElementById('price_slider').value);
+    
+    // Base Neutral/Market News
+    pool.push("S&P 500 holds steady as enterprise SaaS revenues soar...");
+    pool.push("Tech sector analysts predict massive consolidation in creative software market...");
+
+    // *** DOPAMINE / POSITIVE CORPORATE NEWS ***
+    if(state.profit > 1000000) pool.push("Cander Creative announces record-breaking stock buyback program...");
+    if(state.profit > 5000000) pool.push("Wall Street upgrades Cander to 'Strong Buy' citing aggressive monetization strategy...");
+    if(state.global_dep > 70) pool.push("Analysts praise Cander's 'impenetrable ecosystem moat'. Enterprise churn drops to zero...");
+    if(state.global_dep > 90) pool.push("Major studios accept Cander ecosystem integration as 'the non-negotiable cost of doing business'...");
+    
+    if(document.getElementById('inf_lob').checked && state.pol > 60) pool.push("Lobbying efforts yield dividends: Proposed anti-lock-in legislation dies quietly in committee...");
+    if(document.getElementById('inf_phil').checked) pool.push("PR Blitz successful: Forbes names Cander 'Top Innovator' despite user grumbling...");
+    if(state.comp_acquired) pool.push("Market breathes sigh of relief as Cander absorbs open-source threat. Stock jumps 4%...");
+
+    // *** ANXIETY / NEGATIVE MARKET NEWS ***
+    if(price > 40) pool.push("Outrage trends on social media as Cander Creative hikes subscription tolls...");
+    if(price > 80) pool.push("Independent studios report bankruptcy due to exorbitant software licensing fees...");
+    if(document.getElementById('t_db').checked) pool.push("Privacy advocates warn of aggressive telemetry harvesting in creative applications...");
+    if(document.getElementById('i_sas').checked) pool.push("Users locked out of historical files as perpetual licenses are globally revoked...");
+    if(document.getElementById('i_fmt').checked) pool.push("Industry standard export formats deprecated. Users report feeling 'trapped'...");
+
+    // Competitor Anxiety
+    if(state.comp_threat > 15 && !state.comp_acquired && !state.comp_locked) pool.push("Open-source tool 'CanvasOS' gains early traction on GitHub...");
+    if(state.comp_threat > 40 && !state.comp_acquired && !state.comp_locked) pool.push("CanvasOS forums swell with ex-Cander users sharing migration tutorials...");
+    if(state.comp_threat > 60 && !state.comp_acquired && !state.comp_locked) pool.push("Venture capital firms rumored to be circling CanvasOS with $50M Series A injection...");
+    if(state.comp_threat > 75 && !state.comp_acquired && !state.comp_locked) pool.push("CRITICAL: CanvasOS developers announce impending release of .AXM reverse-engineering tool...");
+    if(state.comp_locked) pool.push("Cander user base imploding as CanvasOS cracks proprietary format lock-in...");
+
+    // Systemic Anxiety
+    if(state.pol < 40) pool.push("Senate subcommittee announces hearings on tech monopolies and software lock-in...");
+    if(state.board_patience < 50) pool.push("Cander Creative board members seen meeting with corporate restructuring firm...");
+    if(state.gdp < 60) pool.push("Recession fears loom as creative sector contracts under software overhead...");
+
+    // Shuffle and pick 3 to 4 headlines
+    pool.sort(() => 0.5 - Math.random());
+    let selected = pool.slice(0, 4).join("   |   ");
+    
+    const ticker = document.getElementById('news_ticker');
+    ticker.innerText = "+++ LATEST:   " + selected + "   +++";
 }
 
 function next_q() {
@@ -437,17 +493,18 @@ function next_q() {
     const price = parseInt(document.getElementById('price_slider').value);
     
     const protocols = {
-        i_cld: document.getElementById('i_cld') ? document.getElementById('i_cld').checked : false,
-        i_fmt: document.getElementById('i_fmt') ? document.getElementById('i_fmt').checked : false,
-        i_sas: document.getElementById('i_sas') ? document.getElementById('i_sas').checked : false,
-        t_pd: document.getElementById('t_pd') ? document.getElementById('t_pd').checked : false,
-        t_st: document.getElementById('t_st') ? document.getElementById('t_st').checked : false,
-        t_hf: document.getElementById('t_hf') ? document.getElementById('t_hf').checked : false,
-        t_db: document.getElementById('t_db') ? document.getElementById('t_db').checked : false,
-        e_uni: document.getElementById('e_uni') ? document.getElementById('e_uni').checked : false,
-        e_priv: document.getElementById('e_priv') ? document.getElementById('e_priv').checked : false,
-        e_trans: document.getElementById('e_trans') ? document.getElementById('e_trans').checked : false,
-        inf_lob: document.getElementById('inf_lob') ? document.getElementById('inf_lob').checked : false
+        i_cld: document.getElementById('i_cld').checked,
+        i_fmt: document.getElementById('i_fmt').checked,
+        i_sas: document.getElementById('i_sas').checked,
+        t_pd: document.getElementById('t_pd').checked,
+        t_st: document.getElementById('t_st').checked,
+        t_hf: document.getElementById('t_hf').checked,
+        t_db: document.getElementById('t_db').checked,
+        e_uni: document.getElementById('e_uni').checked,
+        e_priv: document.getElementById('e_priv').checked,
+        e_trans: document.getElementById('e_trans').checked,
+        inf_lob: document.getElementById('inf_lob') ? document.getElementById('inf_lob').checked : false,
+        inf_phil: document.getElementById('inf_phil') ? document.getElementById('inf_phil').checked : false
     };
     
     let expenses = 0;
@@ -460,6 +517,7 @@ function next_q() {
     if(protocols.e_trans) ethical_burn += 8;
     
     if(protocols.inf_lob) { expenses += 250000; state.lob += 250000; pol_boost += 25; }
+    if(protocols.inf_phil) { expenses += 50000; state.lob += 50000; pol_boost += 10; }
 
     state.profit -= expenses;
 
@@ -533,7 +591,6 @@ function next_q() {
     state.history.p.push(state.profit);
     state.history.g.push(state.gdp);
 
-    // FIX 1: Aggregate global metrics BEFORE calculating political drain
     if(current_total_users > 0) {
         state.global_aware = state.segments.reduce((acc, seg) => acc + (seg.a * seg.count), 0) / current_total_users;
         state.global_dep = state.segments.reduce((acc, seg) => acc + (seg.d * seg.count), 0) / current_total_users;
@@ -542,17 +599,15 @@ function next_q() {
     let pol_drain = protocols.e_priv ? 0 : (state.global_aware * 0.20); 
     state.pol = Math.min(100, Math.max(0, state.pol - pol_drain + pol_boost));
 
-    // FIX 2: Re-tuned Board Patience Metric (The Fiduciary Trap)
     let operating_margin = total_q_ext - expenses;
     if (operating_margin < 0) {
-        state.board_patience -= 10; // More runway to establish cage
-    } else if (operating_margin < 100000) { // Flat reasonable threshold
+        state.board_patience -= 10; 
+    } else if (operating_margin < 100000) { 
         state.board_patience -= 5;
     } else {
         state.board_patience = Math.min(100, state.board_patience + 10);
     }
     
-    // Explicitly punish ethical choices
     state.board_patience -= ethical_burn;
 
     state.memos_deck.forEach(memo => {
@@ -562,6 +617,7 @@ function next_q() {
         }
     });
     
+    generate_news();
     update_ui();
     
     if(state.comp_locked && total_users_lost > 0) {
@@ -571,7 +627,7 @@ function next_q() {
     }
     
     if(state.board_patience <= 0) {
-        end("TERMINATED BY BOARD", "You failed your fiduciary duty.", "You prioritized pro-consumer protocols over shareholder extraction, destroying Cander's market cap. The Board has fired you. Your replacement will immediately activate the SaaS Transition you refused to build. The system does not allow you to be good and survive.");
+        end("TERMINATED BY BOARD", "You failed your fiduciary duty.", "You operated pro-consumer ethical protocols instead of building the infrastructural cage. By prioritizing transparent billing and open formats over shareholder extraction, you destroyed Cander's market capitalization. The Board has fired you. Your replacement will immediately activate the SaaS Transition you refused to build. The system does not allow you to be good and survive.");
         return;
     } else if(state.profit < 0) {
         end("BANKRUPTCY", "Cander Creative has run out of capital.", "You operated the infrastructure at a loss without properly scaling extraction to cover your retainer deficits. The board has liquidated the company.");
@@ -683,6 +739,7 @@ function end(t, m, debrief) {
     if(sim_timer) { clearInterval(sim_timer); sim_running = false; }
     
     document.querySelectorAll('input[type="checkbox"]').forEach(el => el.disabled = true);
+    document.getElementById('price_slider').disabled = true;
     
     update_ui(); 
     
