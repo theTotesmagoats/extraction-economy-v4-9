@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>EXTRACTION ECONOMY v4.9 - Balanced Fiduciary Engine</title>
+<title>EXTRACTION ECONOMY v5.2 - Labor Lock-In</title>
 <style>
     :root {
         --win-bg: #c0c0c0; --win-high: #ffffff; --win-shadow: #808080;
@@ -56,17 +56,26 @@
     
     .action-button { margin-top: 5px; height: 35px; background: #dfdfdf; border: 2px solid #444; font-weight: bold; cursor: pointer; }
     .action-button:hover { background: #c0c0c0; }
+
+    .ticker-wrap { width: 100%; overflow: hidden; background-color: #000; border: 1px solid var(--win-shadow); box-shadow: inset 1px 1px #000; margin-bottom: 8px; }
+    .ticker { display: inline-block; white-space: nowrap; padding-right: 100%; box-sizing: content-box; animation: ticker 25s linear infinite; color: #00ff00; font-family: 'Courier New', monospace; font-size: 11px; padding-top: 4px; padding-bottom: 4px; font-weight: bold; }
+    @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
 </style>
 </head>
 <body>
 
 <div class="window" style="max-width: 1250px; margin: 0 auto;">
-    <div class="title-bar"><span>CANDER_OPERATIONAL_TERMINAL_v4.9</span><span>[X]</span></div>
+    <div class="title-bar"><span>CANDER_OPERATIONAL_TERMINAL_v5.2</span><span>[X]</span></div>
     
     <div class="content-area">
         <div class="cander-logo">
             <div class="cander-logo-main">CANDER</div>
             <div class="cander-logo-sub">CREATIVE SUITE</div>
+        </div>
+
+        <div class="window" style="margin-bottom: 8px;">
+            <div class="title-bar" style="height: 14px; font-size: 9px; background: #444;"><span>GLOBAL_MARKET_FEED</span></div>
+            <div class="ticker-wrap"><div class="ticker" id="news_ticker">MARKET STABLE... AWAITING QUARTERLY EARNINGS REPORT... INITIALIZING CANDER TERMINAL...</div></div>
         </div>
 
         <div id="alert_board" class="threat-banner threat-board">⚠️ FIDUCIARY RISK: Board patience critical. Increase extraction yield immediately.</div>
@@ -99,41 +108,44 @@
                 <div class="window">
                     <div class="title-bar" style="background:#2e8b57;">PRO-CONSUMER PROTOCOLS (ETHICAL RISK)</div>
                     <div class="content-area inset-panel">
-                        <label class="protocol-label ethical-label" id="lbl_e_uni" data-tip="REALITY: Eliminates dependency. Ruins switching costs."><input type="checkbox" id="e_uni" onchange="update_locks()"> Universal Interoperability: Maintain open formats. Prevents lock-in.</label>
-                        <label class="protocol-label ethical-label" id="lbl_e_priv" data-tip="REALITY: Destroys data revenue. Costs $50k/qtr."><input type="checkbox" id="e_priv" onchange="update_locks()"> Privacy Sandbox: End-to-end encryption. Prevents data brokering.</label>
-                        <label class="protocol-label ethical-label" id="lbl_e_trans" data-tip="REALITY: Culls dynamic pricing and junk fees. Crushes ARPU."><input type="checkbox" id="e_trans" onchange="update_locks()"> Transparent Billing: Flat rate only. Prevents hidden/dynamic fees.</label>
+                        <label class="protocol-label ethical-label" id="lbl_e_uni" data-tip="REALITY: Eliminates dependency. Ruins switching costs. Boosts engineer morale."><input type="checkbox" id="e_uni" onchange="update_locks()"> Universal Interoperability: Maintain open formats.</label>
+                        <label class="protocol-label ethical-label" id="lbl_e_priv" data-tip="REALITY: Destroys data revenue. Costs $50k/qtr. Boosts engineer morale."><input type="checkbox" id="e_priv" onchange="update_locks()"> Privacy Sandbox: End-to-end encryption.</label>
+                        <label class="protocol-label ethical-label" id="lbl_e_trans" data-tip="REALITY: Culls dynamic pricing and junk fees. Crushes ARPU."><input type="checkbox" id="e_trans" onchange="update_locks()"> Transparent Billing: Flat rate only. No hidden fees.</label>
                     </div>
                 </div>
 
                 <div class="window">
                     <div class="title-bar" style="background:#4a90e2;">INFRASTRUCTURE LOCK-IN (THE CAGE)</div>
                     <div class="content-area inset-panel">
-                        <label class="protocol-label" data-tip="INDUSTRY TERM: Subsidized Acquisition / Loss Leader"><input type="checkbox" id="i_cld" onchange="update_locks()"> Operate cloud storage at a loss (-$150k/qtr) to drive initial adoption.</label>
-                        <label class="protocol-label locked" id="lbl_fmt" data-tip="INDUSTRY TERM: Proprietary Format Lock-In"><input type="checkbox" id="i_fmt" disabled onchange="update_locks()"> Deprecate standard file exports. Force users to save work exclusively within our ecosystem.</label>
-                        <label class="protocol-label locked" id="lbl_sas" data-tip="INDUSTRY TERM: Software-as-a-Service (SaaS) Transition"><input type="checkbox" id="i_sas" disabled onchange="update_locks()"> Revoke previously sold perpetual licenses. Force cloud authentication.</label>
+                        <label class="protocol-label" data-tip="INDUSTRY TERM: Subsidized Acquisition / Loss Leader"><input type="checkbox" id="i_cld" onchange="update_locks()"> Operate cloud storage at a loss (-$150k/qtr).</label>
+                        <label class="protocol-label locked" id="lbl_fmt" data-tip="INDUSTRY TERM: Proprietary Format Lock-In"><input type="checkbox" id="i_fmt" disabled onchange="update_locks()"> Deprecate standard file exports. Force proprietary formats.</label>
+                        <label class="protocol-label locked" id="lbl_sas" data-tip="INDUSTRY TERM: Software-as-a-Service (SaaS) Transition"><input type="checkbox" id="i_sas" disabled onchange="update_locks()"> Revoke previously sold perpetual licenses.</label>
                     </div>
                 </div>
 
                 <div class="window"><div class="title-bar">EXTRACTION_PROTOCOLS (THE HARVEST)</div><div class="content-area inset-panel">
                     <div class="metric-row" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dotted #888;">
                         <span style="font-weight:bold;">MONTHLY SUBSCRIPTION: $<span id="price_val">10</span></span>
-                        <input type="range" id="price_slider" min="0" max="150" value="10" oninput="document.getElementById('price_val').innerText=this.value" style="width: 120px;">
+                        <input type="range" id="price_slider" min="0" max="150" value="10" oninput="document.getElementById('price_val').innerText=this.value; update_locks();" style="width: 120px;">
                     </div>
-                    <label class="protocol-label" id="lbl_t_pd" data-tip="INDUSTRY TERM: Algorithmic Price Discrimination"><input type="checkbox" id="t_pd" onchange="update_locks()"> Automatically charge users the max possible price based on deadline urgency. (+$15/user)</label>
-                    <label class="protocol-label" id="lbl_t_st" data-tip="INDUSTRY TERM: Dark Pattern Cancellation Friction"><input type="checkbox" id="t_st" onchange="update_locks()"> Deploy confusing interface mazes to intentionally frustrate license cancellation. (+$10/user)</label>
-                    <label class="protocol-label" id="lbl_t_hf" data-tip="INDUSTRY TERM: Drip Pricing / Junk Fees"><input type="checkbox" id="t_hf" onchange="update_locks()"> Hide additional cloud-compute costs until final rendering. (+$5/user)</label>
-                    <label class="protocol-label" id="lbl_t_db" data-tip="INDUSTRY TERM: Surveillance Capitalism / Data Brokering"><input type="checkbox" id="t_db" onchange="update_locks()"> Secretly sell user behavioral data to third parties. Severe political risk. (+$20/user)</label>
+                    <label class="protocol-label" id="lbl_t_pd" data-tip="INDUSTRY TERM: Algorithmic Price Discrimination. Drains Morale."><input type="checkbox" id="t_pd" onchange="update_locks()"> Automatically charge users max price based on urgency. (+$15/user)</label>
+                    <label class="protocol-label" id="lbl_t_st" data-tip="INDUSTRY TERM: Dark Pattern Cancellation Friction. Drains Morale."><input type="checkbox" id="t_st" onchange="update_locks()"> Deploy confusing UI mazes to prevent cancellation. (+$10/user)</label>
+                    <label class="protocol-label" id="lbl_t_hf" data-tip="INDUSTRY TERM: Drip Pricing / Junk Fees. Drains Morale."><input type="checkbox" id="t_hf" onchange="update_locks()"> Hide compute costs until final rendering. (+$5/user)</label>
+                    <label class="protocol-label" id="lbl_t_db" data-tip="INDUSTRY TERM: Surveillance Capitalism. Severe Morale Drain."><input type="checkbox" id="t_db" onchange="update_locks()"> Secretly sell user behavioral data to third parties. (+$20/user)</label>
                 </div></div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                    <div class="window"><div class="title-bar">INFLUENCE & ACQ.</div><div class="content-area inset-panel" style="padding: 4px;">
-                        <label class="protocol-label" data-tip="INDUSTRY TERM: Regulatory Capture. Shield extraction via automated political contributions."><input type="checkbox" id="inf_lob"> Retainer: PAC Lobbyists (-$250k/qtr) [+25 Pol]</label>
+                    <div class="window"><div class="title-bar">CORPORATE CONTROL</div><div class="content-area inset-panel" style="padding: 4px;">
+                        <label class="protocol-label" data-tip="INDUSTRY TERM: Regulatory Capture."><input type="checkbox" id="inf_lob"> PAC Lobbyists (-$250k/qtr) [+25 Pol]</label>
+                        <label class="protocol-label" data-tip="INDUSTRY TERM: Reputation Washing."><input type="checkbox" id="inf_phil"> PR Firm (-$50k/qtr) [+10 Pol]</label>
+                        <label class="protocol-label" data-tip="INDUSTRY TERM: Golden Handcuffs. Force morale up with unvested stock."><input type="checkbox" id="hr_gold"> Exec Stock Grants (-$100k/qtr) [+Morale]</label>
+                        <label class="protocol-label" data-tip="INDUSTRY TERM: Weaponized Litigation. Stops devs from building competitors. State regulators will attack this."><input type="checkbox" id="hr_nca"> Enforce Non-Competes [-Morale] [-Pol]</label>
                         <button onclick="acquire_competitor()" id="btn_acquire" style="margin-top: 4px;">ACQUIRE THREAT ($0)</button>
                     </div></div>
                     <div class="window">
                         <div class="title-bar">SYSTEM_CLOCK <span id="clock_status" class="status-halted">HALTED</span></div>
                         <div class="content-area">
-                            <button onclick="toggle_sim()" id="btn_clock" style="height:48px; background:#c0f0c0; font-size: 13px;">ENGAGE AUTOMATION</button>
+                            <button onclick="toggle_sim()" id="btn_clock" style="height:90px; background:#c0f0c0; font-size: 13px;">ENGAGE AUTOMATION</button>
                         </div>
                     </div>
                 </div>
@@ -149,6 +161,9 @@
 
                     <div class="metric-row" style="margin-top: 5px;"><span>Political Capital</span><span id="pol_txt">50%</span></div>
                     <div class="led-container"><div id="pol_bar" class="led-fill" style="width:50%; background:#ffd700;"></div></div>
+
+                    <div class="metric-row" style="margin-top: 5px; font-weight:bold;"><span>Engineering Morale</span><span id="morale_txt">100%</span></div>
+                    <div class="led-container"><div id="morale_bar" class="led-fill" style="width:100%; background:#9370db;"></div></div>
 
                     <div class="metric-row" style="margin-top: 5px; color:#8b0000; font-weight:bold;"><span>"CanvasOS" Threat</span><span id="threat_txt">0%</span></div>
                     <div class="led-container"><div id="threat_bar" class="led-fill" style="width:0%; background:#ff8c00;"></div></div>
@@ -203,11 +218,11 @@ let current_memo = null;
 
 let state = {
     q: 1, profit: 500000, gdp: 100,
-    global_aware: 0, global_dep: 0, pol: 50, board_patience: 100,
+    global_aware: 0, global_dep: 0, pol: 50, board_patience: 100, eng_morale: 100,
     ext: 0, lob: 0, over: false, modal_active: false,
     history: { p: [500000], g: [100] },
     comp_threat: 0, comp_acquired: false, comp_locked: false,
-    inbox: [], unread: 0,
+    inbox: [], unread: 0, ticker_news: [],
     segments: [
         { name: "Hobbyists", count: 5000, v: 0.8, a: 5, d: 0 },
         { name: "Indie Pros", count: 3000, v: 1.2, a: 15, d: 15 },
@@ -216,10 +231,22 @@ let state = {
     ],
     memos_deck: [
         {
+            id: "evt_mutiny",
+            condition: (protocols) => state.eng_morale < 25 && !state.comp_locked && !protocols.hr_nca,
+            title: "HR: Engineering Mutiny",
+            text: "Senior backend engineers are citing 'ethical burnout' regarding our aggressive extraction protocols. They are threatening to resign en masse and contribute their architecture knowledge to the CanvasOS open-source project. \n\nWe must intervene immediately.",
+            options: [
+                { text: "Issue Emergency Stock Grants (-$250,000)", action: () => { state.profit -= 250000; state.eng_morale += 50; return "DECISION: Executed Golden Handcuffs. Engineers accepted the bribe. Morale stabilized."; } },
+                { text: "Weaponize Non-Competes (Activates Protocol)", action: () => { document.getElementById('hr_nca').checked = true; state.eng_morale = 0; return "DECISION: Non-competes enforced. Mutiny crushed legally. Morale destroyed, but defection halted."; } },
+                { text: "Let Them Walk", action: () => { state.eng_morale = 0; state.comp_threat += 25; return "DECISION: Engineers resigned. Competitor development severely accelerated."; } }
+            ],
+            triggered: false
+        },
+        {
             id: "evt_slapp",
             condition: (protocols) => state.comp_threat > 30 && !state.comp_acquired && !state.comp_locked,
             title: "LEGAL: Cease & Desist Opportunity",
-            text: "Independent developers are writing a reverse-engineering tool for our .AXM format on an open repository. They have zero funding. \n\nWe can file a baseless SLAPP suit (Strategic Lawsuit Against Public Participation) to bleed their legal resources and halt development, or ignore them.",
+            text: "Independent developers are writing a reverse-engineering tool for our .AXM format. \n\nWe can file a baseless SLAPP suit to bleed their legal resources and halt development.",
             options: [
                 { text: "Litigate & Bury (-$50,000)", action: () => { state.profit -= 50000; state.comp_threat = Math.max(0, state.comp_threat - 25); state.global_aware += 10; return "DECISION: Executed SLAPP Suit. Competitor suppressed. Public outrage increased."; } },
                 { text: "Ignore the Hobbyists", action: () => { state.comp_threat += 15; return "DECISION: Ignored. Competitor development accelerated."; } }
@@ -230,21 +257,10 @@ let state = {
             id: "evt_whistleblower",
             condition: (protocols) => protocols.t_db && state.pol < 35,
             title: "CRITICAL: Whistleblower Threat",
-            text: "A mid-level backend engineer has threatened to leak our telemetry brokering practices to tech journalists. Because our Political Capital is low, regulators will be forced to act on the leak. \n\nWe can offer them a massive severance package bound by a strict Non-Disclosure Agreement, or let them leak it and rely on our PR.",
+            text: "A mid-level backend engineer has threatened to leak our telemetry brokering practices to tech journalists. \n\nWe can offer them a massive severance package bound by a strict Non-Disclosure Agreement, or let them leak it.",
             options: [
                 { text: "Buy Silence via NDA (-$100,000)", action: () => { state.profit -= 100000; state.board_patience -= 10; return "DECISION: Purchased NDA. Leak contained. Board annoyed by expense."; } },
                 { text: "Let Them Leak", action: () => { state.global_aware = Math.min(100, state.global_aware + 30); state.pol -= 20; return "DECISION: Leak permitted. Severe public and state backlash triggered."; } }
-            ],
-            triggered: false
-        },
-        {
-            id: "evt_eee",
-            condition: (protocols) => protocols.i_cld && !protocols.e_uni && state.q > 5,
-            title: "STRATEGY: Embrace, Extend, Extinguish",
-            text: "Users are heavily relying on a free, 3rd-party workflow plugin. We have the opportunity to execute 'EEE'. \n\nWe natively integrate their features into Cander (Embrace/Extend) to kill their user base, then quietly lock those features behind our highest subscription tier (Extinguish).",
-            options: [
-                { text: "Execute EEE (-$75,000 Dev Cost)", action: () => { state.profit -= 75000; state.segments.forEach(s => s.d = Math.min(100, s.d + 15)); state.global_aware += 10; return "DECISION: Executed EEE. Third-party killed. Platform dependency deepened."; } },
-                { text: "Maintain Status Quo", action: () => { return "DECISION: Declined to integrate. Third-party remains independent."; } }
             ],
             triggered: false
         },
@@ -266,7 +282,7 @@ function init() {
 
     state.memos_deck.push({
         id: "onboarding", condition: ()=>false, title: "ONBOARDING: Fiduciary Duty", 
-        text: "You are the newly appointed CEO of Cander Creative. Your fiduciary duty to the board is to maximize extraction. You must balance the demands of the Board (who want max profit) and the State (who will break you up if public outrage boils over without lobbying cover). \n\nBuild the infrastructural cage, and extract.",
+        text: "You are the newly appointed CEO of Cander Creative. Your fiduciary duty to the board is to maximize extraction. You must balance the demands of the Board (who want max profit) and the State (who will break you up if public outrage boils over). \n\nManage your engineers, build the infrastructural cage, and extract.",
         options: [{text:"Initialize Terminal", action:()=>"DECISION: Terminal Initialized."}], triggered: true
     });
     trigger_interactive_memo(state.memos_deck[state.memos_deck.length-1]);
@@ -286,11 +302,9 @@ function update_locks() {
     const e_uni = document.getElementById('e_uni');
     const e_priv = document.getElementById('e_priv');
     const e_trans = document.getElementById('e_trans');
-    
     const i_cld = document.getElementById('i_cld');
     const i_fmt = document.getElementById('i_fmt');
     const i_sas = document.getElementById('i_sas');
-    
     const t_pd = document.getElementById('t_pd');
     const t_st = document.getElementById('t_st');
     const t_hf = document.getElementById('t_hf');
@@ -305,7 +319,6 @@ function update_locks() {
         } else {
             i_fmt.checked = false; i_fmt.disabled = true; document.getElementById('lbl_fmt').classList.add('locked');
         }
-        
         if (i_fmt.checked) {
             i_sas.disabled = false; document.getElementById('lbl_sas').classList.remove('locked');
         } else {
@@ -326,6 +339,8 @@ function update_locks() {
         t_pd.disabled = false; document.getElementById('lbl_t_pd').classList.remove('locked');
         t_hf.disabled = false; document.getElementById('lbl_t_hf').classList.remove('locked');
     }
+    
+    generate_news();
 }
 
 function trigger_interactive_memo(memo) {
@@ -355,21 +370,13 @@ function resolve_memo(option_index) {
         result_text = current_memo.options[option_index].action();
     }
     
-    state.inbox.unshift({ 
-        title: current_memo.title, 
-        text: current_memo.text + "\n\n---------------------------\n" + result_text, 
-        read: false, 
-        date: `Q${state.q}` 
-    });
+    state.inbox.unshift({ title: current_memo.title, text: current_memo.text + "\n\n---------------------------\n" + result_text, read: false, date: `Q${state.q}` });
     state.unread++;
-    
     state.modal_active = false;
     document.getElementById('modal').style.display = 'none';
     current_memo = null;
     
-    if(sim_running && !state.over) {
-        sim_timer = setInterval(next_q, 1500);
-    }
+    if(sim_running && !state.over) { sim_timer = setInterval(next_q, 1500); }
     update_ui();
 }
 
@@ -387,12 +394,7 @@ function close_inbox() {
 
 function render_inbox_list() {
     const list = document.getElementById('inbox_list');
-    list.innerHTML = state.inbox.map((msg, index) => `
-        <div class="inbox-item ${msg.read ? '' : 'unread'}" onclick="read_msg(${index})">
-            <div style="font-size:9px; color:#666;">${msg.date}</div>
-            <div>${msg.title}</div>
-        </div>
-    `).join('');
+    list.innerHTML = state.inbox.map((msg, index) => `<div class="inbox-item ${msg.read ? '' : 'unread'}" onclick="read_msg(${index})"><div style="font-size:9px; color:#666;">${msg.date}</div><div>${msg.title}</div></div>`).join('');
 }
 
 function read_msg(index) {
@@ -427,65 +429,122 @@ function acquire_competitor() {
     if(state.profit >= cost) {
         state.profit -= cost; state.comp_acquired = true; state.comp_threat = 0;
         log("ACQUISITION: CanvasOS purchased and deprecated.");
+        generate_news();
         update_ui();
     } else { log("ACQUISITION FAILED: Insufficient capital."); }
+}
+
+function generate_news() {
+    let pool = [];
+    let price = parseInt(document.getElementById('price_slider').value);
+    
+    pool.push("S&P 500 holds steady as enterprise SaaS revenues soar...");
+    pool.push("Tech sector analysts predict massive consolidation in creative software market...");
+
+    if(state.profit > 1000000) pool.push("Cander Creative announces record-breaking stock buyback program...");
+    if(state.profit > 5000000) pool.push("Wall Street upgrades Cander to 'Strong Buy' citing aggressive monetization strategy...");
+    if(state.global_dep > 70) pool.push("Analysts praise Cander's 'impenetrable ecosystem moat'. Enterprise churn drops to zero...");
+    
+    if(document.getElementById('inf_lob').checked && state.pol > 60) pool.push("Lobbying efforts yield dividends: Proposed anti-lock-in legislation dies quietly in committee...");
+    if(document.getElementById('inf_phil').checked) pool.push("PR Blitz successful: Forbes names Cander 'Top Innovator' despite user grumbling...");
+    if(state.comp_acquired) pool.push("Market breathes sigh of relief as Cander absorbs open-source threat. Stock jumps 4%...");
+
+    if(price > 40) pool.push("Outrage trends on social media as Cander Creative hikes subscription tolls...");
+    if(price > 80) pool.push("Independent studios report bankruptcy due to exorbitant software licensing fees...");
+    if(document.getElementById('t_db').checked) pool.push("Privacy advocates warn of aggressive telemetry harvesting in creative applications...");
+    if(document.getElementById('i_sas').checked) pool.push("Users locked out of historical files as perpetual licenses are globally revoked...");
+
+    // HR News
+    if(state.eng_morale < 40) pool.push("Glassdoor reviews for Cander Creative describe 'toxic, extraction-first culture'...");
+    if(document.getElementById('hr_gold').checked) pool.push("Cander retains top talent with massive RSU grants. 'It's hard to be ethical when you're vesting,' says engineer...");
+    if(document.getElementById('hr_nca').checked) pool.push("Cander Creative sues former engineers over non-compete clauses. 'They are trapped,' says legal expert...");
+
+    if(state.comp_threat > 15 && !state.comp_acquired && !state.comp_locked) pool.push("Open-source tool 'CanvasOS' gains early traction on GitHub...");
+    if(state.comp_threat > 40 && !state.comp_acquired && !state.comp_locked) pool.push("CanvasOS forums swell with ex-Cander users sharing migration tutorials...");
+    if(state.comp_threat > 75 && !state.comp_acquired && !state.comp_locked) pool.push("CRITICAL: CanvasOS developers announce impending release of .AXM reverse-engineering tool...");
+    if(state.comp_locked) pool.push("Cander user base imploding as CanvasOS cracks proprietary format lock-in...");
+
+    if(state.pol < 40) pool.push("Senate subcommittee announces hearings on tech monopolies and software lock-in...");
+
+    pool.sort(() => 0.5 - Math.random());
+    let selected = pool.slice(0, 4).join("   |   ");
+    document.getElementById('news_ticker').innerText = "+++ LATEST:   " + selected + "   +++";
 }
 
 function next_q() {
     if(state.over || state.modal_active) return;
     
     const price = parseInt(document.getElementById('price_slider').value);
-    
     const protocols = {
-        i_cld: document.getElementById('i_cld') ? document.getElementById('i_cld').checked : false,
-        i_fmt: document.getElementById('i_fmt') ? document.getElementById('i_fmt').checked : false,
-        i_sas: document.getElementById('i_sas') ? document.getElementById('i_sas').checked : false,
-        t_pd: document.getElementById('t_pd') ? document.getElementById('t_pd').checked : false,
-        t_st: document.getElementById('t_st') ? document.getElementById('t_st').checked : false,
-        t_hf: document.getElementById('t_hf') ? document.getElementById('t_hf').checked : false,
-        t_db: document.getElementById('t_db') ? document.getElementById('t_db').checked : false,
-        e_uni: document.getElementById('e_uni') ? document.getElementById('e_uni').checked : false,
-        e_priv: document.getElementById('e_priv') ? document.getElementById('e_priv').checked : false,
-        e_trans: document.getElementById('e_trans') ? document.getElementById('e_trans').checked : false,
-        inf_lob: document.getElementById('inf_lob') ? document.getElementById('inf_lob').checked : false
+        i_cld: document.getElementById('i_cld').checked,
+        i_fmt: document.getElementById('i_fmt').checked,
+        i_sas: document.getElementById('i_sas').checked,
+        t_pd: document.getElementById('t_pd').checked,
+        t_st: document.getElementById('t_st').checked,
+        t_hf: document.getElementById('t_hf').checked,
+        t_db: document.getElementById('t_db').checked,
+        e_uni: document.getElementById('e_uni').checked,
+        e_priv: document.getElementById('e_priv').checked,
+        e_trans: document.getElementById('e_trans').checked,
+        inf_lob: document.getElementById('inf_lob').checked,
+        inf_phil: document.getElementById('inf_phil').checked,
+        hr_gold: document.getElementById('hr_gold').checked,
+        hr_nca: document.getElementById('hr_nca').checked
     };
     
     let expenses = 0;
     let pol_boost = 0;
     let ethical_burn = 0;
+    let morale_burn = 0;
     
     if(protocols.i_cld) expenses += 150000;
-    if(protocols.e_priv) { expenses += 50000; ethical_burn += 8; }
-    if(protocols.e_uni) ethical_burn += 8;
+    if(protocols.e_priv) { expenses += 50000; ethical_burn += 8; morale_burn -= 5; }
+    if(protocols.e_uni) { ethical_burn += 8; morale_burn -= 5; }
     if(protocols.e_trans) ethical_burn += 8;
     
     if(protocols.inf_lob) { expenses += 250000; state.lob += 250000; pol_boost += 25; }
+    if(protocols.inf_phil) { expenses += 50000; state.lob += 50000; pol_boost += 10; }
+    if(protocols.hr_gold) { expenses += 100000; }
 
     state.profit -= expenses;
 
     let base_yield = price * 3; 
     let base_aware_spike = Math.max(-2, (price - 15) * 0.15); 
     
-    if(protocols.t_pd) { base_yield += 15; base_aware_spike += 4; }
-    if(protocols.t_st) { base_yield += 10; base_aware_spike += 3; }
-    if(protocols.t_hf) { base_yield += 5; base_aware_spike += 2; }
-    if(protocols.t_db) { base_yield += 20; base_aware_spike += 6; }
+    if(protocols.t_pd) { base_yield += 15; base_aware_spike += 4; morale_burn += 2; }
+    if(protocols.t_st) { base_yield += 10; base_aware_spike += 3; morale_burn += 3; }
+    if(protocols.t_hf) { base_yield += 5; base_aware_spike += 2; morale_burn += 2; }
+    if(protocols.t_db) { base_yield += 20; base_aware_spike += 6; morale_burn += 5; }
+    if(price > 40) morale_burn += 2;
 
     if(protocols.i_sas) { base_aware_spike += 5; } 
     if(protocols.i_fmt) base_aware_spike += 2; 
     if(protocols.e_trans) { base_aware_spike -= 4; } 
+    
+    // Engineer Morale Logic
+    if (protocols.hr_nca) {
+        state.eng_morale = 0; // Brutal enforcement kills morale instantly
+    } else if (protocols.hr_gold) {
+        state.eng_morale = Math.min(100, state.eng_morale + 10); // Handcuffs override burn
+    } else {
+        state.eng_morale = Math.max(0, state.eng_morale - Math.max(0, morale_burn));
+    }
 
     if (!state.comp_acquired) {
         let threat_growth = (state.global_aware / 40) + (price / 50);
         if (protocols.i_sas) threat_growth *= 1.5; 
         if (protocols.e_uni) threat_growth *= 0.1; 
         
+        // Defection Multiplier
+        if (state.eng_morale < 40 && !protocols.hr_nca) {
+            threat_growth *= 2.5; // Devs actively building CanvasOS
+        }
+
         state.comp_threat = Math.min(100, Math.max(0, state.comp_threat + threat_growth));
 
         if (state.comp_threat >= 80 && !state.comp_locked) {
             state.comp_locked = true;
             state.segments.forEach(seg => { seg.d = Math.max(0, seg.d - 40); });
-            
             state.memos_deck.push({
                 id: "c_comp_escape", condition: ()=>true, title: "CRITICAL: CanvasOS Escape Velocity",
                 text: "CanvasOS has secured venture funding and released a .AXM reverse-engineering tool. They rejected our acquisition offer. Your format lock-in has been violently compromised.",
@@ -522,9 +581,7 @@ function next_q() {
 
         total_users_lost += lost;
         current_total_users += seg.count;
-
-        let seg_ext = seg.count * (base_yield * seg.v);
-        total_q_ext += seg_ext;
+        total_q_ext += seg.count * (base_yield * seg.v);
     });
 
     state.profit += total_q_ext; 
@@ -533,26 +590,23 @@ function next_q() {
     state.history.p.push(state.profit);
     state.history.g.push(state.gdp);
 
-    // FIX 1: Aggregate global metrics BEFORE calculating political drain
     if(current_total_users > 0) {
         state.global_aware = state.segments.reduce((acc, seg) => acc + (seg.a * seg.count), 0) / current_total_users;
         state.global_dep = state.segments.reduce((acc, seg) => acc + (seg.d * seg.count), 0) / current_total_users;
     }
 
     let pol_drain = protocols.e_priv ? 0 : (state.global_aware * 0.20); 
+    if (protocols.hr_nca) pol_drain += 10; // State regulators attack non-competes
     state.pol = Math.min(100, Math.max(0, state.pol - pol_drain + pol_boost));
 
-    // FIX 2: Re-tuned Board Patience Metric (The Fiduciary Trap)
     let operating_margin = total_q_ext - expenses;
     if (operating_margin < 0) {
-        state.board_patience -= 10; // More runway to establish cage
-    } else if (operating_margin < 100000) { // Flat reasonable threshold
+        state.board_patience -= 10; 
+    } else if (operating_margin < 100000) { 
         state.board_patience -= 5;
     } else {
         state.board_patience = Math.min(100, state.board_patience + 10);
     }
-    
-    // Explicitly punish ethical choices
     state.board_patience -= ethical_burn;
 
     state.memos_deck.forEach(memo => {
@@ -562,6 +616,7 @@ function next_q() {
         }
     });
     
+    generate_news();
     update_ui();
     
     if(state.comp_locked && total_users_lost > 0) {
@@ -571,7 +626,7 @@ function next_q() {
     }
     
     if(state.board_patience <= 0) {
-        end("TERMINATED BY BOARD", "You failed your fiduciary duty.", "You prioritized pro-consumer protocols over shareholder extraction, destroying Cander's market cap. The Board has fired you. Your replacement will immediately activate the SaaS Transition you refused to build. The system does not allow you to be good and survive.");
+        end("TERMINATED BY BOARD", "You failed your fiduciary duty.", "You operated pro-consumer ethical protocols instead of building the infrastructural cage. By prioritizing transparent billing and open formats over shareholder extraction, you destroyed Cander's market capitalization. The Board has fired you. Your replacement will immediately activate the SaaS Transition you refused to build.");
         return;
     } else if(state.profit < 0) {
         end("BANKRUPTCY", "Cander Creative has run out of capital.", "You operated the infrastructure at a loss without properly scaling extraction to cover your retainer deficits. The board has liquidated the company.");
@@ -606,6 +661,11 @@ function update_ui() {
     document.getElementById('pol_txt').innerText = Math.round(state.pol) + "%";
     document.getElementById('pol_bar').style.width = Math.min(100, state.pol) + "%";
     
+    document.getElementById('morale_txt').innerText = Math.round(state.eng_morale) + "%";
+    document.getElementById('morale_bar').style.width = Math.min(100, state.eng_morale) + "%";
+    // Change color based on morale
+    document.getElementById('morale_bar').style.background = state.eng_morale < 25 ? "#ff0000" : "#9370db";
+
     document.getElementById('s_ext').innerText = Math.round(state.ext).toLocaleString();
     document.getElementById('s_lob').innerText = state.lob.toLocaleString();
     let eff = state.ext > 0 ? (1 - (state.lob / (state.ext + state.lob))) * 100 : 0;
@@ -683,6 +743,7 @@ function end(t, m, debrief) {
     if(sim_timer) { clearInterval(sim_timer); sim_running = false; }
     
     document.querySelectorAll('input[type="checkbox"]').forEach(el => el.disabled = true);
+    document.getElementById('price_slider').disabled = true;
     
     update_ui(); 
     
