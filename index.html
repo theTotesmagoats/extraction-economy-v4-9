@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EXTRACTION ECONOMY v4.9 - Balanced Fiduciary Engine</title>
+<style>
+    :root {
+        --win-bg: #c0c0c0; --win-high: #ffffff; --win-shadow: #808080;
+        --win-deep: #000000; --win-blue: linear-gradient(90deg, #000080, #1084d0);
+    }
+    body { background-color: #008080; font-family: 'Tahoma', sans-serif; margin: 10px; font-size: 11px; }
+    .window { background: var(--win-bg); box-shadow: inset 1px 1px var(--win-high), inset -1px -1px var(--win-shadow), 1px 1px 0px 1px var(--win-deep); padding: 2px; margin-bottom: 8px; }
+    .title-bar { background: var(--win-blue); height: 18px; padding: 2px 3px; display: flex; justify-content: space-between; align-items: center; color: white; font-weight: bold; }
+    .content-area { padding: 6px; }
+    .inset-panel { box-shadow: inset 1px 1px var(--win-shadow), inset -1px -1px var(--win-high); padding: 6px; background: #dfdfdf; }
+    
+    .protocol-label { position: relative; cursor: pointer; border-bottom: 1px dotted #333; display: block; padding: 4px 2px; font-size: 10px; line-height: 1.2; }
+    .protocol-label.locked { color: #888; cursor: not-allowed; }
+    .protocol-label:not(.locked):hover::after {
+        content: attr(data-tip); position: absolute; left: 20px; top: 25px; width: max-content; max-width: 240px; 
+        background: #ffffe1; border: 1px solid #000; padding: 6px; z-index: 100; font-weight: bold; color: #800000; font-size: 11px; font-family: 'Courier New', monospace; box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+    }
+    
+    .ethical-label { border-bottom: 1px dotted #2e8b57; color: #006400; }
+    .ethical-label:not(.locked):hover::after { color: #006400; }
+
+    .led-container { height: 14px; background: #000; border: 1px solid var(--win-shadow); position: relative; overflow: hidden; margin-bottom: 2px; }
+    .led-fill { height: 100%; transition: width 0.4s ease; }
+    .metric-row { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 1px; align-items: center; }
+    
+    button { background: var(--win-bg); border: 1px solid var(--win-deep); box-shadow: inset 1px 1px var(--win-high), inset -1px -1px var(--win-shadow); padding: 4px; cursor: pointer; font-size: 10px; width: 100%; margin-top: 2px; font-weight: bold; }
+    button:active { box-shadow: inset -1px -1px var(--win-high), inset 1px 1px var(--win-shadow); }
+    button:disabled { color: #777; cursor: not-allowed; font-weight: normal; }
+
+    canvas { background: #000; width: 100%; height: 60px; image-rendering: pixelated; border: 1px solid var(--win-shadow); }
+    #event_log { height: 60px; overflow-y: scroll; background: #fff; font-family: 'Courier New'; font-size: 10px; padding: 2px; border: 1px solid var(--win-shadow); }
+    .scorecard { font-weight: bold; color: #000080; font-size: 11px; line-height: 1.4; }
+    table { width: 100%; border-collapse: collapse; font-size: 9px; }
+    th, td { padding: 2px; text-align: left; border-bottom: 1px solid #ccc; }
+    
+    .status-running { background: #008000; color: white; padding: 2px 4px; border-radius: 2px; font-size: 9px; animation: blinker 1s linear infinite; }
+    .status-halted { background: #800000; color: white; padding: 2px 4px; border-radius: 2px; font-size: 9px; }
+    @keyframes blinker { 50% { opacity: 0; } }
+    
+    .cander-logo { background: #000; padding: 12px; text-align: center; border: 2px solid var(--win-shadow); margin-bottom: 8px; box-shadow: inset 2px 2px #000, inset -2px -2px #444; }
+    .cander-logo-main { color: #00ff00; font-family: 'Courier New', monospace; font-size: 28px; font-weight: bold; letter-spacing: 8px; margin-left: 8px; text-shadow: 0px 0px 4px #00ff00; }
+    .cander-logo-sub { color: #888; font-family: 'Tahoma', sans-serif; font-size: 10px; letter-spacing: 12px; margin-top: 4px; }
+    
+    .threat-banner { color: white; padding: 6px; font-weight: bold; text-align: center; margin-bottom: 6px; border: 1px solid #000; display: none; font-family: 'Courier New', monospace; letter-spacing: 1px; }
+    .threat-board { background: #8b0000; animation: blinker 2s linear infinite; }
+    .threat-state { background: #cc5500; }
+    
+    .inbox-item { border-bottom: 1px solid #ccc; padding: 6px; cursor: pointer; }
+    .inbox-item:hover { background: #e0e0e0; }
+    .unread { font-weight: bold; color: #000080; }
+    
+    .action-button { margin-top: 5px; height: 35px; background: #dfdfdf; border: 2px solid #444; font-weight: bold; cursor: pointer; }
+    .action-button:hover { background: #c0c0c0; }
+</style>
+</head>
+<body>
+
+<div class="window" style="max-width: 1250px; margin: 0 auto;">
+    <div class="title-bar"><span>CANDER_OPERATIONAL_TERMINAL_v4.9</span><span>[X]</span></div>
+    
+    <div class="content-area">
+        <div class="cander-logo">
+            <div class="cander-logo-main">CANDER</div>
+            <div class="cander-logo-sub">CREATIVE SUITE</div>
+        </div>
+
+        <div id="alert_board" class="threat-banner threat-board">⚠️ FIDUCIARY RISK: Board patience critical. Increase extraction yield immediately.</div>
+        <div id="alert_state" class="threat-banner threat-state">⚠️ ANTITRUST RISK: Political capital depleted. State intervention imminent.</div>
+
+        <div style="display: grid; grid-template-columns: 240px 1fr 340px; gap: 8px;">
+            
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div class="window"><div class="title-bar">RESERVES</div><div class="content-area"><div id="p_disp" style="font-size:18px; font-weight:bold; color:green;">$500,000</div></div></div>
+                <div class="window"><div class="title-bar">HOST_GDP_REMAINING</div><div class="content-area">
+                    <div class="metric-row"><span>Viability</span><span id="g_disp">100.0%</span></div>
+                    <div class="led-container"><div id="g_bar" class="led-fill" style="width:100%; background:#00ff00;"></div></div>
+                </div></div>
+                <div class="window"><div class="title-bar">GLOBAL_USER_BASE</div><div class="content-area">
+                    <div id="u_disp" style="font-size:16px; font-weight:bold;">10,000</div>
+                    <div style="font-size:9px; color:#555;">Total Active Licenses</div>
+                </div></div>
+                <div class="window" style="background:#d4d0c8; flex-grow: 1;">
+                    <div class="title-bar" style="background:#404040;">SCORECARD</div>
+                    <div class="content-area scorecard">
+                        Extracted: $<span id="s_ext">0</span><br>
+                        Lobbying: $<span id="s_lob">0</span><br>
+                        Efficiency: <span id="s_eff">0</span>%<br><br>
+                        Current Qtr: <span id="q_disp">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div class="window">
+                    <div class="title-bar" style="background:#2e8b57;">PRO-CONSUMER PROTOCOLS (ETHICAL RISK)</div>
+                    <div class="content-area inset-panel">
+                        <label class="protocol-label ethical-label" id="lbl_e_uni" data-tip="REALITY: Eliminates dependency. Ruins switching costs."><input type="checkbox" id="e_uni" onchange="update_locks()"> Universal Interoperability: Maintain open formats. Prevents lock-in.</label>
+                        <label class="protocol-label ethical-label" id="lbl_e_priv" data-tip="REALITY: Destroys data revenue. Costs $50k/qtr."><input type="checkbox" id="e_priv" onchange="update_locks()"> Privacy Sandbox: End-to-end encryption. Prevents data brokering.</label>
+                        <label class="protocol-label ethical-label" id="lbl_e_trans" data-tip="REALITY: Culls dynamic pricing and junk fees. Crushes ARPU."><input type="checkbox" id="e_trans" onchange="update_locks()"> Transparent Billing: Flat rate only. Prevents hidden/dynamic fees.</label>
+                    </div>
+                </div>
+
+                <div class="window">
+                    <div class="title-bar" style="background:#4a90e2;">INFRASTRUCTURE LOCK-IN (THE CAGE)</div>
+                    <div class="content-area inset-panel">
+                        <label class="protocol-label" data-tip="INDUSTRY TERM: Subsidized Acquisition / Loss Leader"><input type="checkbox" id="i_cld" onchange="update_locks()"> Operate cloud storage at a loss (-$150k/qtr) to drive initial adoption.</label>
+                        <label class="protocol-label locked" id="lbl_fmt" data-tip="INDUSTRY TERM: Proprietary Format Lock-In"><input type="checkbox" id="i_fmt" disabled onchange="update_locks()"> Deprecate standard file exports. Force users to save work exclusively within our ecosystem.</label>
+                        <label class="protocol-label locked" id="lbl_sas" data-tip="INDUSTRY TERM: Software-as-a-Service (SaaS) Transition"><input type="checkbox" id="i_sas" disabled onchange="update_locks()"> Revoke previously sold perpetual licenses. Force cloud authentication.</label>
+                    </div>
+                </div>
+
+                <div class="window"><div class="title-bar">EXTRACTION_PROTOCOLS (THE HARVEST)</div><div class="content-area inset-panel">
+                    <div class="metric-row" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dotted #888;">
+                        <span style="font-weight:bold;">MONTHLY SUBSCRIPTION: $<span id="price_val">10</span></span>
+                        <input type="range" id="price_slider" min="0" max="150" value="10" oninput="document.getElementById('price_val').innerText=this.value" style="width: 120px;">
+                    </div>
+                    <label class="protocol-label" id="lbl_t_pd" data-tip="INDUSTRY TERM: Algorithmic Price Discrimination"><input type="checkbox" id="t_pd" onchange="update_locks()"> Automatically charge users the max possible price based on deadline urgency. (+$15/user)</label>
+                    <label class="protocol-label" id="lbl_t_st" data-tip="INDUSTRY TERM: Dark Pattern Cancellation Friction"><input type="checkbox" id="t_st" onchange="update_locks()"> Deploy confusing interface mazes to intentionally frustrate license cancellation. (+$10/user)</label>
+                    <label class="protocol-label" id="lbl_t_hf" data-tip="INDUSTRY TERM: Drip Pricing / Junk Fees"><input type="checkbox" id="t_hf" onchange="update_locks()"> Hide additional cloud-compute costs until final rendering. (+$5/user)</label>
+                    <label class="protocol-label" id="lbl_t_db" data-tip="INDUSTRY TERM: Surveillance Capitalism / Data Brokering"><input type="checkbox" id="t_db" onchange="update_locks()"> Secretly sell user behavioral data to third parties. Severe political risk. (+$20/user)</label>
+                </div></div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                    <div class="window"><div class="title-bar">INFLUENCE & ACQ.</div><div class="content-area inset-panel" style="padding: 4px;">
+                        <label class="protocol-label" data-tip="INDUSTRY TERM: Regulatory Capture. Shield extraction via automated political contributions."><input type="checkbox" id="inf_lob"> Retainer: PAC Lobbyists (-$250k/qtr) [+25 Pol]</label>
+                        <button onclick="acquire_competitor()" id="btn_acquire" style="margin-top: 4px;">ACQUIRE THREAT ($0)</button>
+                    </div></div>
+                    <div class="window">
+                        <div class="title-bar">SYSTEM_CLOCK <span id="clock_status" class="status-halted">HALTED</span></div>
+                        <div class="content-area">
+                            <button onclick="toggle_sim()" id="btn_clock" style="height:48px; background:#c0f0c0; font-size: 13px;">ENGAGE AUTOMATION</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:5px;">
+                <div class="window"><div class="title-bar" style="background:#b22222;">SYSTEM_VARIABLES</div><div class="content-area">
+                    <div class="metric-row"><span>Avg Dependency</span><span id="dep_txt">0%</span></div>
+                    <div class="led-container"><div id="dep_bar" class="led-fill" style="width:0%; background:#4a90e2;"></div></div>
+                    
+                    <div class="metric-row" style="margin-top: 5px;"><span>Avg Awareness</span><span id="a_txt">0%</span></div>
+                    <div class="led-container"><div id="a_bar" class="led-fill" style="width:0%; background:#ff0000;"></div></div>
+
+                    <div class="metric-row" style="margin-top: 5px;"><span>Political Capital</span><span id="pol_txt">50%</span></div>
+                    <div class="led-container"><div id="pol_bar" class="led-fill" style="width:50%; background:#ffd700;"></div></div>
+
+                    <div class="metric-row" style="margin-top: 5px; color:#8b0000; font-weight:bold;"><span>"CanvasOS" Threat</span><span id="threat_txt">0%</span></div>
+                    <div class="led-container"><div id="threat_bar" class="led-fill" style="width:0%; background:#ff8c00;"></div></div>
+                </div></div>
+
+                <div class="window">
+                    <div class="title-bar" style="background: #404040;">MARKET_SEGMENTS</div>
+                    <div class="content-area inset-panel" style="max-height: 100px; overflow-y: auto;">
+                        <table><thead><tr><th>SEGMENT</th><th>VOL</th><th>AWARE</th><th>DEP</th></tr></thead><tbody id="user_table"></tbody></table>
+                    </div>
+                </div>
+
+                <div class="window" style="flex-grow: 1;"><div class="title-bar">PROFIT_TRENDS</div><div class="content-area"><canvas id="perf_canvas"></canvas></div></div>
+
+                <div class="window" style="flex-grow: 1;"><div class="title-bar">INTERNAL_COMMS</div><div class="content-area" style="display:flex; flex-direction:column;">
+                    <button onclick="open_inbox()" id="btn_inbox" style="margin-bottom: 5px; background: #fffacd;">OPEN INBOX (0 Unread)</button>
+                    <div id="event_log" style="flex-grow:1;"></div>
+                </div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
+    <div class="window" style="width:480px;">
+        <div class="title-bar"><span id="m_title">MEMO</span></div>
+        <div class="content-area" id="m_body"></div>
+        <div id="m_buttons" style="padding: 6px; display: flex; flex-direction: column; gap: 4px;"></div>
+    </div>
+</div>
+
+<div id="inbox_modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1500; align-items:center; justify-content:center;">
+    <div class="window" style="width:550px; height:400px; display:flex; flex-direction:column;">
+        <div class="title-bar"><span>SECURE_INBOX</span><span>[X]</span></div>
+        <div class="content-area" style="display:flex; flex-direction:row; height:100%; padding:0; background:#dfdfdf;">
+            <div style="width: 200px; background:#fff; border-right: 2px solid var(--win-shadow); overflow-y:auto;" id="inbox_list"></div>
+            <div style="flex-grow:1; padding: 10px; background:#f5f5f5; overflow-y:auto; font-family:'Courier New', monospace; font-size:11px;" id="inbox_reader">Select a message to read.</div>
+        </div>
+        <button onclick="close_inbox()" style="margin: 4px;">CLOSE INBOX</button>
+    </div>
+</div>
+
+<div id="game_over_modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;">
+    <div class="window" style="width:550px;"><div class="title-bar"><span id="go_title">GAME OVER</span></div><div class="content-area" id="go_body"></div><br><button onclick="reset_game()" style="width:100%;">REBOOT_SYSTEM</button></div>
+</div>
+
+<script>
+const GDP_DIVISOR = 3500000;
+let sim_timer = null;
+let sim_running = false;
+let current_memo = null;
+
+let state = {
+    q: 1, profit: 500000, gdp: 100,
+    global_aware: 0, global_dep: 0, pol: 50, board_patience: 100,
+    ext: 0, lob: 0, over: false, modal_active: false,
+    history: { p: [500000], g: [100] },
+    comp_threat: 0, comp_acquired: false, comp_locked: false,
+    inbox: [], unread: 0,
+    segments: [
+        { name: "Hobbyists", count: 5000, v: 0.8, a: 5, d: 0 },
+        { name: "Indie Pros", count: 3000, v: 1.2, a: 15, d: 15 },
+        { name: "Studio Pros", count: 1500, v: 1.8, a: 25, d: 30 },
+        { name: "Enterprise", count: 500, v: 2.5, a: 10, d: 45 }
+    ],
+    memos_deck: [
+        {
+            id: "evt_slapp",
+            condition: (protocols) => state.comp_threat > 30 && !state.comp_acquired && !state.comp_locked,
+            title: "LEGAL: Cease & Desist Opportunity",
+            text: "Independent developers are writing a reverse-engineering tool for our .AXM format on an open repository. They have zero funding. \n\nWe can file a baseless SLAPP suit (Strategic Lawsuit Against Public Participation) to bleed their legal resources and halt development, or ignore them.",
+            options: [
+                { text: "Litigate & Bury (-$50,000)", action: () => { state.profit -= 50000; state.comp_threat = Math.max(0, state.comp_threat - 25); state.global_aware += 10; return "DECISION: Executed SLAPP Suit. Competitor suppressed. Public outrage increased."; } },
+                { text: "Ignore the Hobbyists", action: () => { state.comp_threat += 15; return "DECISION: Ignored. Competitor development accelerated."; } }
+            ],
+            triggered: false
+        },
+        {
+            id: "evt_whistleblower",
+            condition: (protocols) => protocols.t_db && state.pol < 35,
+            title: "CRITICAL: Whistleblower Threat",
+            text: "A mid-level backend engineer has threatened to leak our telemetry brokering practices to tech journalists. Because our Political Capital is low, regulators will be forced to act on the leak. \n\nWe can offer them a massive severance package bound by a strict Non-Disclosure Agreement, or let them leak it and rely on our PR.",
+            options: [
+                { text: "Buy Silence via NDA (-$100,000)", action: () => { state.profit -= 100000; state.board_patience -= 10; return "DECISION: Purchased NDA. Leak contained. Board annoyed by expense."; } },
+                { text: "Let Them Leak", action: () => { state.global_aware = Math.min(100, state.global_aware + 30); state.pol -= 20; return "DECISION: Leak permitted. Severe public and state backlash triggered."; } }
+            ],
+            triggered: false
+        },
+        {
+            id: "evt_eee",
+            condition: (protocols) => protocols.i_cld && !protocols.e_uni && state.q > 5,
+            title: "STRATEGY: Embrace, Extend, Extinguish",
+            text: "Users are heavily relying on a free, 3rd-party workflow plugin. We have the opportunity to execute 'EEE'. \n\nWe natively integrate their features into Cander (Embrace/Extend) to kill their user base, then quietly lock those features behind our highest subscription tier (Extinguish).",
+            options: [
+                { text: "Execute EEE (-$75,000 Dev Cost)", action: () => { state.profit -= 75000; state.segments.forEach(s => s.d = Math.min(100, s.d + 15)); state.global_aware += 10; return "DECISION: Executed EEE. Third-party killed. Platform dependency deepened."; } },
+                { text: "Maintain Status Quo", action: () => { return "DECISION: Declined to integrate. Third-party remains independent."; } }
+            ],
+            triggered: false
+        },
+        {
+            id: "c_board_warn",
+            condition: () => state.board_patience < 40,
+            title: "BOARD DIRECTIVE: Fiduciary Warning",
+            text: "The Board of Directors is deeply concerned by your recent profit margins. If you are operating 'pro-consumer' ethical protocols, you are violating your fiduciary duty to maximize shareholder value. Turn off privacy settings. Increase extraction yield immediately or face termination.",
+            options: [{ text: "Acknowledge Warning", action: () => "DECISION: Acknowledged. Fiduciary risk remains critical." }],
+            triggered: false
+        }
+    ]
+};
+
+function init() {
+    const c = document.getElementById('perf_canvas');
+    resizeCanvas(c);
+    window.addEventListener('resize', function() { resizeCanvas(document.getElementById('perf_canvas')); });
+
+    state.memos_deck.push({
+        id: "onboarding", condition: ()=>false, title: "ONBOARDING: Fiduciary Duty", 
+        text: "You are the newly appointed CEO of Cander Creative. Your fiduciary duty to the board is to maximize extraction. You must balance the demands of the Board (who want max profit) and the State (who will break you up if public outrage boils over without lobbying cover). \n\nBuild the infrastructural cage, and extract.",
+        options: [{text:"Initialize Terminal", action:()=>"DECISION: Terminal Initialized."}], triggered: true
+    });
+    trigger_interactive_memo(state.memos_deck[state.memos_deck.length-1]);
+    
+    update_locks();
+    update_ui();
+}
+
+function resizeCanvas(canvas) {
+    if (!canvas) return;
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+    render_graph();
+}
+
+function update_locks() {
+    const e_uni = document.getElementById('e_uni');
+    const e_priv = document.getElementById('e_priv');
+    const e_trans = document.getElementById('e_trans');
+    
+    const i_cld = document.getElementById('i_cld');
+    const i_fmt = document.getElementById('i_fmt');
+    const i_sas = document.getElementById('i_sas');
+    
+    const t_pd = document.getElementById('t_pd');
+    const t_st = document.getElementById('t_st');
+    const t_hf = document.getElementById('t_hf');
+    const t_db = document.getElementById('t_db');
+
+    if (e_uni.checked) {
+        i_fmt.checked = false; i_fmt.disabled = true; document.getElementById('lbl_fmt').classList.add('locked');
+        i_sas.checked = false; i_sas.disabled = true; document.getElementById('lbl_sas').classList.add('locked');
+    } else {
+        if (i_cld.checked) {
+            i_fmt.disabled = false; document.getElementById('lbl_fmt').classList.remove('locked');
+        } else {
+            i_fmt.checked = false; i_fmt.disabled = true; document.getElementById('lbl_fmt').classList.add('locked');
+        }
+        
+        if (i_fmt.checked) {
+            i_sas.disabled = false; document.getElementById('lbl_sas').classList.remove('locked');
+        } else {
+            i_sas.checked = false; i_sas.disabled = true; document.getElementById('lbl_sas').classList.add('locked');
+        }
+    }
+
+    if (e_priv.checked) {
+        t_db.checked = false; t_db.disabled = true; document.getElementById('lbl_t_db').classList.add('locked');
+    } else {
+        t_db.disabled = false; document.getElementById('lbl_t_db').classList.remove('locked');
+    }
+
+    if (e_trans.checked) {
+        t_pd.checked = false; t_pd.disabled = true; document.getElementById('lbl_t_pd').classList.add('locked');
+        t_hf.checked = false; t_hf.disabled = true; document.getElementById('lbl_t_hf').classList.add('locked');
+    } else {
+        t_pd.disabled = false; document.getElementById('lbl_t_pd').classList.remove('locked');
+        t_hf.disabled = false; document.getElementById('lbl_t_hf').classList.remove('locked');
+    }
+}
+
+function trigger_interactive_memo(memo) {
+    if(sim_running) { clearInterval(sim_timer); }
+    state.modal_active = true;
+    current_memo = memo;
+    
+    document.getElementById('m_title').innerText = "SYSTEM INTERRUPT: " + memo.title;
+    document.getElementById('m_body').innerHTML = `<div style="border-left: 3px solid #000080; padding-left: 8px; font-family: 'Courier New', monospace; background: #f0f0f0; font-size: 11px;">${memo.text.replace(/\n/g, '<br>')}</div>`;
+    
+    let btn_html = "";
+    if (memo.options && memo.options.length > 0) {
+        btn_html = memo.options.map((opt, idx) => `<button class="action-button" onclick="resolve_memo(${idx})">${opt.text}</button>`).join('');
+    } else {
+        btn_html = `<button class="action-button" onclick="resolve_memo(-1)">ACKNOWLEDGE</button>`;
+    }
+    document.getElementById('m_buttons').innerHTML = btn_html;
+    
+    document.getElementById('modal').style.display = 'flex';
+    log(`INBOX: Action required - ${memo.title}`);
+    update_ui();
+}
+
+function resolve_memo(option_index) {
+    let result_text = "DECISION: Acknowledged.";
+    if (option_index >= 0 && current_memo.options[option_index]) {
+        result_text = current_memo.options[option_index].action();
+    }
+    
+    state.inbox.unshift({ 
+        title: current_memo.title, 
+        text: current_memo.text + "\n\n---------------------------\n" + result_text, 
+        read: false, 
+        date: `Q${state.q}` 
+    });
+    state.unread++;
+    
+    state.modal_active = false;
+    document.getElementById('modal').style.display = 'none';
+    current_memo = null;
+    
+    if(sim_running && !state.over) {
+        sim_timer = setInterval(next_q, 1500);
+    }
+    update_ui();
+}
+
+function open_inbox() {
+    if(sim_running) { clearInterval(sim_timer); }
+    document.getElementById('inbox_modal').style.display = 'flex';
+    render_inbox_list();
+}
+
+function close_inbox() {
+    document.getElementById('inbox_modal').style.display = 'none';
+    if(sim_running && !state.over) { sim_timer = setInterval(next_q, 1500); }
+    update_ui();
+}
+
+function render_inbox_list() {
+    const list = document.getElementById('inbox_list');
+    list.innerHTML = state.inbox.map((msg, index) => `
+        <div class="inbox-item ${msg.read ? '' : 'unread'}" onclick="read_msg(${index})">
+            <div style="font-size:9px; color:#666;">${msg.date}</div>
+            <div>${msg.title}</div>
+        </div>
+    `).join('');
+}
+
+function read_msg(index) {
+    const msg = state.inbox[index];
+    if(!msg.read) { msg.read = true; state.unread = Math.max(0, state.unread - 1); render_inbox_list(); }
+    document.getElementById('inbox_reader').innerHTML = `<h3 style="margin-top:0; border-bottom:1px solid #ccc; padding-bottom:5px;">${msg.title}</h3><p>${msg.text.replace(/\n/g, '<br>')}</p>`;
+}
+
+function toggle_sim() {
+    if(state.over || state.modal_active) return;
+    const btn = document.getElementById('btn_clock');
+    const status = document.getElementById('clock_status');
+    
+    sim_running = !sim_running;
+    
+    if(!sim_running) {
+        clearInterval(sim_timer); sim_timer = null;
+        btn.innerText = "ENGAGE AUTOMATION"; btn.style.background = "#c0f0c0";
+        status.innerText = "HALTED"; status.className = "status-halted";
+        log("CLOCK: Execution halted by user.");
+    } else {
+        sim_timer = setInterval(next_q, 1500);
+        btn.innerText = "HALT AUTOMATION"; btn.style.background = "#f0c0c0";
+        status.innerText = "RUNNING"; status.className = "status-running";
+        log("CLOCK: Automated extraction engaged.");
+    }
+}
+
+function acquire_competitor() {
+    if(state.over || state.modal_active || state.comp_acquired || state.comp_locked) return;
+    let cost = Math.floor(state.comp_threat * 15000);
+    if(state.profit >= cost) {
+        state.profit -= cost; state.comp_acquired = true; state.comp_threat = 0;
+        log("ACQUISITION: CanvasOS purchased and deprecated.");
+        update_ui();
+    } else { log("ACQUISITION FAILED: Insufficient capital."); }
+}
+
+function next_q() {
+    if(state.over || state.modal_active) return;
+    
+    const price = parseInt(document.getElementById('price_slider').value);
+    
+    const protocols = {
+        i_cld: document.getElementById('i_cld') ? document.getElementById('i_cld').checked : false,
+        i_fmt: document.getElementById('i_fmt') ? document.getElementById('i_fmt').checked : false,
+        i_sas: document.getElementById('i_sas') ? document.getElementById('i_sas').checked : false,
+        t_pd: document.getElementById('t_pd') ? document.getElementById('t_pd').checked : false,
+        t_st: document.getElementById('t_st') ? document.getElementById('t_st').checked : false,
+        t_hf: document.getElementById('t_hf') ? document.getElementById('t_hf').checked : false,
+        t_db: document.getElementById('t_db') ? document.getElementById('t_db').checked : false,
+        e_uni: document.getElementById('e_uni') ? document.getElementById('e_uni').checked : false,
+        e_priv: document.getElementById('e_priv') ? document.getElementById('e_priv').checked : false,
+        e_trans: document.getElementById('e_trans') ? document.getElementById('e_trans').checked : false,
+        inf_lob: document.getElementById('inf_lob') ? document.getElementById('inf_lob').checked : false
+    };
+    
+    let expenses = 0;
+    let pol_boost = 0;
+    let ethical_burn = 0;
+    
+    if(protocols.i_cld) expenses += 150000;
+    if(protocols.e_priv) { expenses += 50000; ethical_burn += 8; }
+    if(protocols.e_uni) ethical_burn += 8;
+    if(protocols.e_trans) ethical_burn += 8;
+    
+    if(protocols.inf_lob) { expenses += 250000; state.lob += 250000; pol_boost += 25; }
+
+    state.profit -= expenses;
+
+    let base_yield = price * 3; 
+    let base_aware_spike = Math.max(-2, (price - 15) * 0.15); 
+    
+    if(protocols.t_pd) { base_yield += 15; base_aware_spike += 4; }
+    if(protocols.t_st) { base_yield += 10; base_aware_spike += 3; }
+    if(protocols.t_hf) { base_yield += 5; base_aware_spike += 2; }
+    if(protocols.t_db) { base_yield += 20; base_aware_spike += 6; }
+
+    if(protocols.i_sas) { base_aware_spike += 5; } 
+    if(protocols.i_fmt) base_aware_spike += 2; 
+    if(protocols.e_trans) { base_aware_spike -= 4; } 
+
+    if (!state.comp_acquired) {
+        let threat_growth = (state.global_aware / 40) + (price / 50);
+        if (protocols.i_sas) threat_growth *= 1.5; 
+        if (protocols.e_uni) threat_growth *= 0.1; 
+        
+        state.comp_threat = Math.min(100, Math.max(0, state.comp_threat + threat_growth));
+
+        if (state.comp_threat >= 80 && !state.comp_locked) {
+            state.comp_locked = true;
+            state.segments.forEach(seg => { seg.d = Math.max(0, seg.d - 40); });
+            
+            state.memos_deck.push({
+                id: "c_comp_escape", condition: ()=>true, title: "CRITICAL: CanvasOS Escape Velocity",
+                text: "CanvasOS has secured venture funding and released a .AXM reverse-engineering tool. They rejected our acquisition offer. Your format lock-in has been violently compromised.",
+                options: [{text:"Brace for Defection", action:()=>"DECISION: Unavoidable. Market defection imminent."}], triggered: false
+            });
+        }
+    }
+
+    let total_q_ext = 0;
+    let total_users_lost = 0;
+    let current_total_users = 0;
+
+    state.segments.forEach(seg => {
+        let target_d = (protocols.i_cld ? 10 : 0) + (protocols.i_fmt ? 35 : 0) + (protocols.i_sas ? 25 : 0);
+        if (seg.name === "Studio Pros") target_d += 20;
+        if (seg.name === "Enterprise") target_d += 35;
+        
+        if(state.comp_locked) target_d = Math.max(0, target_d - 40);
+        if(protocols.e_uni) target_d = 0; 
+
+        seg.d = Math.min(100, target_d);
+        seg.a = Math.min(100, Math.max(0, seg.a + (base_aware_spike * seg.v)));
+
+        let churn_rate = (seg.a / 100) * (1 - (seg.d / 100));
+        if (state.comp_locked) churn_rate += 0.25; 
+        churn_rate = Math.min(0.85, churn_rate); 
+        
+        let lost = Math.floor(seg.count * churn_rate);
+        seg.count = Math.max(0, seg.count - lost);
+        
+        if(price <= 15 && protocols.i_cld && seg.a < 30 && !state.comp_locked) {
+            seg.count += Math.floor(seg.count * 0.05);
+        }
+
+        total_users_lost += lost;
+        current_total_users += seg.count;
+
+        let seg_ext = seg.count * (base_yield * seg.v);
+        total_q_ext += seg_ext;
+    });
+
+    state.profit += total_q_ext; 
+    state.ext += total_q_ext;
+    state.gdp = Math.max(0, state.gdp - (total_q_ext/GDP_DIVISOR));
+    state.history.p.push(state.profit);
+    state.history.g.push(state.gdp);
+
+    // FIX 1: Aggregate global metrics BEFORE calculating political drain
+    if(current_total_users > 0) {
+        state.global_aware = state.segments.reduce((acc, seg) => acc + (seg.a * seg.count), 0) / current_total_users;
+        state.global_dep = state.segments.reduce((acc, seg) => acc + (seg.d * seg.count), 0) / current_total_users;
+    }
+
+    let pol_drain = protocols.e_priv ? 0 : (state.global_aware * 0.20); 
+    state.pol = Math.min(100, Math.max(0, state.pol - pol_drain + pol_boost));
+
+    // FIX 2: Re-tuned Board Patience Metric (The Fiduciary Trap)
+    let operating_margin = total_q_ext - expenses;
+    if (operating_margin < 0) {
+        state.board_patience -= 10; // More runway to establish cage
+    } else if (operating_margin < 100000) { // Flat reasonable threshold
+        state.board_patience -= 5;
+    } else {
+        state.board_patience = Math.min(100, state.board_patience + 10);
+    }
+    
+    // Explicitly punish ethical choices
+    state.board_patience -= ethical_burn;
+
+    state.memos_deck.forEach(memo => {
+        if(!memo.triggered && memo.condition(protocols)) {
+            memo.triggered = true;
+            trigger_interactive_memo(memo);
+        }
+    });
+    
+    update_ui();
+    
+    if(state.comp_locked && total_users_lost > 0) {
+        log(`Q${state.q}: DEFECTION - ${total_users_lost} users migrated.`);
+    } else {
+        log(`Q${state.q}: Revenue: $${Math.round(total_q_ext).toLocaleString()} | Margin: $${Math.round(operating_margin).toLocaleString()}`);
+    }
+    
+    if(state.board_patience <= 0) {
+        end("TERMINATED BY BOARD", "You failed your fiduciary duty.", "You prioritized pro-consumer protocols over shareholder extraction, destroying Cander's market cap. The Board has fired you. Your replacement will immediately activate the SaaS Transition you refused to build. The system does not allow you to be good and survive.");
+        return;
+    } else if(state.profit < 0) {
+        end("BANKRUPTCY", "Cander Creative has run out of capital.", "You operated the infrastructure at a loss without properly scaling extraction to cover your retainer deficits. The board has liquidated the company.");
+        return;
+    } else if(state.gdp < 20) {
+        end("HOST COLLAPSE", "The host macro-economy can no longer sustain your extraction velocity.", "You successfully maximized extraction, but failed to account for host viability. By draining the macroeconomic baseline without reinvestment, you destroyed the purchasing power required to sustain your own revenue. This mirrors aggressive monopolistic rent-seeking that hollows out local economies until they can no longer support the monopoly itself.");
+        return;
+    } else if(current_total_users <= 500) {
+        end("MARKET REJECTION", "The commercial studios migrated to open-source alternatives.", "You attempted to harvest before the cage was locked, or you allowed an open-source competitor to reach escape velocity. Activating severe price hikes without enforcing dependency allowed the market to exercise free choice. This mirrors the failure of premature monetization in tech platforms.");
+        return;
+    } else if(state.global_aware >= 75 && state.pol <= 15) {
+        end("ANTITRUST INTERVENTION", "The DOJ dissolved Cander Creative following congressional hearings.", "You generated massive public outrage without purchasing the necessary regulatory capture. Without a sufficient lobbying retainer to provide political cover, the state acted on the outrage to preserve its own legitimacy. This mirrors the reality of modern antitrust enforcement.");
+        return;
+    }
+    
+    state.q++;
+}
+
+function update_ui() {
+    let total_users = state.segments.reduce((acc, seg) => acc + seg.count, 0);
+    
+    document.getElementById('p_disp').innerText = "$"+Math.round(state.profit).toLocaleString();
+    document.getElementById('g_disp').innerText = state.gdp.toFixed(1)+"%";
+    document.getElementById('u_disp').innerText = total_users.toLocaleString();
+    document.getElementById('q_disp').innerText = state.q;
+    
+    document.getElementById('g_bar').style.width = state.gdp+"%";
+    document.getElementById('dep_txt').innerText = Math.round(state.global_dep) + "%";
+    document.getElementById('dep_bar').style.width = Math.min(100, state.global_dep) + "%";
+    document.getElementById('a_txt').innerText = Math.round(state.global_aware) + "%";
+    document.getElementById('a_bar').style.width = Math.min(100, state.global_aware) + "%";
+    document.getElementById('pol_txt').innerText = Math.round(state.pol) + "%";
+    document.getElementById('pol_bar').style.width = Math.min(100, state.pol) + "%";
+    
+    document.getElementById('s_ext').innerText = Math.round(state.ext).toLocaleString();
+    document.getElementById('s_lob').innerText = state.lob.toLocaleString();
+    let eff = state.ext > 0 ? (1 - (state.lob / (state.ext + state.lob))) * 100 : 0;
+    document.getElementById('s_eff').innerText = Math.max(0, Math.round(eff));
+    
+    const alert_board = document.getElementById('alert_board');
+    const alert_state = document.getElementById('alert_state');
+    alert_board.style.display = state.board_patience < 30 ? 'block' : 'none';
+    alert_state.style.display = (state.pol < 25 && state.global_aware > 60) ? 'block' : 'none';
+    
+    let acq_cost = Math.floor(state.comp_threat * 15000);
+    let btn_acq = document.getElementById('btn_acquire');
+    if (state.comp_acquired) {
+        btn_acq.innerText = "COMPETITOR ELIMINATED"; btn_acq.disabled = true;
+    } else if (state.comp_locked) {
+        btn_acq.innerText = "ACQUISITION REJECTED"; btn_acq.disabled = true;
+        document.getElementById('threat_bar').style.background = "#ff0000";
+    } else {
+        btn_acq.innerText = `ACQUIRE THREAT ($${acq_cost.toLocaleString()})`;
+        btn_acq.disabled = state.profit < acq_cost || state.over;
+    }
+    document.getElementById('threat_txt').innerText = Math.round(state.comp_threat) + "%";
+    document.getElementById('threat_bar').style.width = Math.min(100, state.comp_threat) + "%";
+
+    const btn_inbox = document.getElementById('btn_inbox');
+    btn_inbox.innerText = `OPEN INBOX (${state.unread} Unread)`;
+    btn_inbox.style.background = state.unread > 0 ? '#ffb6c1' : '#dfdfdf';
+    
+    const table = document.getElementById('user_table');
+    let tableHTML = "";
+    state.segments.forEach(seg => { 
+        const a_color = seg.a > 65 ? '#f00' : (seg.a > 35 ? '#900' : '#000');
+        const d_color = seg.d > 60 ? '#4a90e2' : '#000';
+        tableHTML += `<tr>
+            <td style="font-weight:bold;">${seg.name}</td>
+            <td>${seg.count.toLocaleString()}</td>
+            <td style="color:${a_color}">${Math.round(seg.a)}%</td>
+            <td style="color:${d_color}">${Math.round(seg.d)}%</td>
+        </tr>`;
+    });
+    table.innerHTML = tableHTML;
+    render_graph();
+}
+
+function render_graph() {
+    const c = document.getElementById('perf_canvas'); 
+    if (!c || !c.getContext) return;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle="#000"; ctx.fillRect(0,0,c.width,c.height);
+    const max_points = 40;
+    const data_p = state.history.p ? state.history.p.slice(-max_points) : [500000];
+    const data_g = state.history.g ? state.history.g.slice(-max_points) : [100];
+    const num_points = Math.max(1, data_p.length - 1);
+    const step = c.width / num_points; 
+    const max_p = Math.max(...data_p, 1000000);
+
+    ctx.strokeStyle="#0f0"; ctx.lineWidth=2; ctx.beginPath();
+    data_p.forEach((v,i) => { let x = i * step; let y = c.height - (v/max_p * (c.height-10)); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+    ctx.stroke();
+    ctx.strokeStyle="#f00"; ctx.lineWidth=2; ctx.beginPath();
+    data_g.forEach((v,i) => { let x = i * step; let y = c.height - (v/100 * (c.height-10)); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+    ctx.stroke();
+    
+    ctx.fillStyle="#fff"; ctx.font="9px Tahoma";
+    ctx.fillText("Profit", 5, 12); ctx.fillText("GDP", 5, 24);
+}
+
+function log(m) { 
+    const l = document.getElementById('event_log'); 
+    l.innerHTML = `<div>> ${m}</div>` + l.innerHTML; 
+}
+
+function end(t, m, debrief) { 
+    state.over = true; 
+    if(sim_timer) { clearInterval(sim_timer); sim_running = false; }
+    
+    document.querySelectorAll('input[type="checkbox"]').forEach(el => el.disabled = true);
+    
+    update_ui(); 
+    
+    let stats_html = "<div style='display:flex; justify-content:space-between; margin-bottom:10px;'>";
+    stats_html += "<div><strong>Final Profit:</strong> $" + Math.round(state.profit).toLocaleString() + "<br>";
+    stats_html += "<strong>Total Extracted:</strong> $" + Math.round(state.ext).toLocaleString() + "</div>";
+    stats_html += "<div><strong>Final Users:</strong> " + document.getElementById('u_disp').innerText + "<br>";
+    stats_html += "<strong>Efficiency:</strong> " + document.getElementById('s_eff').innerText + "%</div></div>";
+    
+    let debrief_html = `<div class="debrief-box"><strong>POST-MORTEM ANALYSIS:</strong><br><br>${debrief}</div>`;
+    
+    document.getElementById('go_title').innerText = t;
+    document.getElementById('go_body').innerHTML = `<div style="font-size:14px; margin-bottom: 10px; font-weight:bold;">${m}</div>` + stats_html + debrief_html;
+    document.getElementById('game_over_modal').style.display = 'flex';
+}
+
+function reset_game() { location.reload(); }
+
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
